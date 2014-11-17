@@ -1,0 +1,11 @@
+{
+  "name": "angular-slider",
+  "version": "0.0.1",
+  "homepage": "https://github.com/sathyapulse/angular-slide",
+  "description": "Slider directive implementation for AngularJS, without jQuery dependencies.",
+  "main": "slider.js",
+  "license": "MIT",
+  "authors": [
+    "(Sathiyamoorthy Venkatesan <sathyapulse@gmail.com>)"
+  ]
+}
