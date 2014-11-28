@@ -73,7 +73,7 @@
       start: 'touchstart',
       move: 'touchmove',
       end: 'touchend'
-    },
+    }
   };
 
   sliderDirective = function($timeout) {
@@ -89,14 +89,16 @@
         precision: '@',
         buffer: '@',
         dragstop: '@',
-        disableSlider: '@',
+        enableSlider: '@',
+        showHandle: '@',
+        sliderControl: '=',
         ngModel: '=?',
         ngModelLow: '=?',
         ngModelHigh: '=?'
       },
-      template: '<div class="bar"><div class="selection"></div></div>\n<div class="handle low"></div><div class="handle high"></div>\n<div class="bubble limit low">{{ values.length ? ( values[floor || 0] || floor ) : floor }}</div>\n<div class="bubble limit high">{{ values.length ? ( values[ceiling || values.length - 1] || ceiling ) : ceiling }}</div>\n<div class="bubble value low">{{ values.length ? ( values[local.ngModelLow || local.ngModel] || local.ngModelLow || local.ngModel ) : local.ngModelLow || local.ngModel}}</div>\n<div class="bubble value high">{{ values.length ? ( values[local.ngModelHigh] || local.ngModelHigh ) : local.ngModelHigh }}</div>',
+      template: '<div class="bar"><div class="selection"></div></div>\n<div class="handle low" ng-hide="(!enableSlider && !showHandle)"></div><div class="handle high" ng-hide="(!enableSlider && !showHandle)"></div>\n<div class="bubble limit low">{{ values.length ? ( values[floor || 0] || floor ) : floor }}</div>\n<div class="bubble limit high">{{ values.length ? ( values[ceiling || values.length - 1] || ceiling ) : ceiling }}</div>\n<div class="bubble value low">{{ values.length ? ( values[local.ngModelLow || local.ngModel] || local.ngModelLow || local.ngModel ) : local.ngModelLow || local.ngModel}}</div>\n<div class="bubble value high">{{ values.length ? ( values[local.ngModelHigh] || local.ngModelHigh ) : local.ngModelHigh }}</div>',
       compile: function(element, attributes) {
-        var bar, ceilBub, e, flrBub, high, highBub, low, lowBub, maxPtr, minPtr, range, selection, watchables, _i, _len, _ref, _ref1, disableSlider = false;
+        var bar, ceilBub, e, flrBub, high, highBub, low, lowBub, maxPtr, minPtr, range, selection, watchables, _i, _len, _ref, _ref1;
         range = (attributes.ngModel == null) && (attributes.ngModelLow != null) && (attributes.ngModelHigh != null);
         _ref = (function() {
           var _i, _len, _ref, _results;
@@ -118,13 +120,10 @@
           if (!attributes.highlight) {
             selection.remove();
           }
-          if (attributes.disableSlider != null && attributes.disableSlider == 'true') {
-            disableSlider = true;
-          }
-          if (disableSlider && attributes.showHandle != null && attributes.showHandle == 'false') {
-            minPtr.css('display', 'none');
-            maxPtr.css('display', 'none');
-          }
+          //if (scope.enableSlider && !scope.showHandle) {
+            //minPtr.css('display', 'none');
+            //maxPtr.css('display', 'none');
+          //}
         }
         low = range ? 'ngModelLow' : 'ngModel';
         high = 'ngModelHigh';
@@ -151,6 +150,30 @@
               }
               if (scope.precision == null) {
                 scope.precision = 0;
+              }
+              if (scope.enableSlider == null) {
+            	  scope.enableSlider = true;
+              }
+              else {
+            	  scope.enableSlider = (scope.enableSlider == 'true' || (typeof scope.enableSlider === 'boolean' && scope.enableSlider)) ? true : false;
+              }
+              attributes.$observe('enableSlider', function(value) {
+                scope.enableSlider = (value == 'true' || (typeof value === 'boolean' && value)) ? true : false;
+              });
+              if (scope.showHandle == null) {
+            	  scope.showHandle = false;
+              }
+              else {
+            	  scope.showHandle = ((typeof scope.showHandle === 'boolean' && !scope.showHandle) || scope.showHandle == 'false') ? false : true;
+              }
+              attributes.$observe('showHandle', function(value) {
+                scope.showHandle = ((typeof value === 'boolean' && !value) || value == 'false') ? false : true;
+              });
+              if (angular.isDefined(scope.sliderControl)) {
+            	  scope.internalSliderControl = scope.sliderControl;
+            	  scope.internalSliderControl.updateSlider = function() {
+            		  updateDOM();
+            	  };
               }
               if (!range) {
                 scope.ngModelLow = scope.ngModel;
@@ -212,10 +235,14 @@
                       width: percentToOffset(110 - newLowValue)
                     });
                   case attributes.highlight === 'left':
+                  
+                 // To fill the gap between handle and selection
+                
                     selection.css({
-                      width: percentToOffset(newLowValue)
+                      width: percentToOffset(newLowValue + (handleHalfWidth / 10))
                     });
-                    return offset(selection, 0);
+                     return offset(selection, 0);
+
                 }
               };
               bindToInputEvents = function(handle, bubble, ref, events) {
@@ -275,6 +302,7 @@
                   return scope.$apply();
                 };
                 onStart = function(event) {
+                  if (!scope.enableSlider) { return; }
                   dimensions();
                   bubble.addClass('active');
                   handle.addClass('active');
@@ -292,6 +320,7 @@
         bindClickEvents = function() {
     var onClick;
     onClick = function(event) {
+      if (!scope.enableSlider) { return; }
       var eventX, newOffset, newPercent, newValue;
                   eventX = event.clientX || event.touches[0].clientX;
                   newOffset = eventX - element[0].getBoundingClientRect().left - handleHalfWidth;
@@ -324,7 +353,7 @@
     _results.push(bindClickEvents());
                 return _results;
               };
-              if (!boundToInputs && !disableSlider) {
+              if (!boundToInputs && scope.enableSlider) {
                 setBindings();
               }
               return setPointers();
