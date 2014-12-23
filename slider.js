@@ -28,7 +28,7 @@
 
   offset = function(element, position) {
     return element.css({
-      left: position
+      left: position 
     });
   };
 
@@ -210,7 +210,7 @@
                 return ((value - minValue) / valueRange) * 100;
               };
               percentToOffset = function(percent) {
-                return pixelize(percent * offsetRange / 100);
+                return pixelize((percent * (offsetRange-3.5) / 100));
               };
               fitToBar = function(element) {
                 return offset(element, pixelize(Math.min(Math.max(0, offsetLeft(element)), barWidth - width(element))));
